@@ -98,10 +98,10 @@ void Error_Handler(void);
 #define A4988_EN_X1_GPIO_Port GPIOB
 #define A4988_EN_X2_Pin GPIO_PIN_5
 #define A4988_EN_X2_GPIO_Port GPIOB
-#define A4988_STEP_X_Pin GPIO_PIN_8
-#define A4988_STEP_X_GPIO_Port GPIOB
-#define A4988_STEP_Y_Pin GPIO_PIN_9
+#define A4988_STEP_Y_Pin GPIO_PIN_8
 #define A4988_STEP_Y_GPIO_Port GPIOB
+#define A4988_STEP_X_Pin GPIO_PIN_9
+#define A4988_STEP_X_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

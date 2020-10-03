@@ -260,7 +260,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
     PB8     ------> TIM4_CH3
     PB9     ------> TIM4_CH4
     */
-    GPIO_InitStruct.Pin = A4988_STEP_X_Pin|A4988_STEP_Y_Pin;
+    GPIO_InitStruct.Pin = A4988_STEP_Y_Pin|A4988_STEP_X_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
