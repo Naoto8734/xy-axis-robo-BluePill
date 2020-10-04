@@ -98,19 +98,18 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   uint32_t adc_val = 0;
+  HAL_ADC_Start(&hadc1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
 		//ADC読み込み
-		HAL_ADC_Start(&hadc1);
 		HAL_ADC_PollForConversion(&hadc1, 100);
-		HAL_ADC_Stop(&hadc1);
 		adc_val = HAL_ADC_GetValue(&hadc1);
 
-		on_time = adc_val/10;
-		off_time = (0xfff-adc_val)/10;
+		on_time = adc_val/20;
+		off_time = (0xfff-adc_val)/20;
 
 		HAL_GPIO_WritePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin, 0);
 		HAL_Delay(on_time);//Light on
@@ -190,7 +189,7 @@ static void MX_ADC1_Init(void)
   */
   hadc1.Instance = ADC1;
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
