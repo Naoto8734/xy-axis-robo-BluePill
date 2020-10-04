@@ -104,7 +104,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if(HAL_GPIO_ReadPin(LIMIT_SW_X1_GPIO_Port, LIMIT_SW_X1_Pin)){
+	  if(!HAL_GPIO_ReadPin(LIMIT_SW_X1_GPIO_Port, LIMIT_SW_X1_Pin)){
 		  HAL_GPIO_WritePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin, 1);
 	  }else{
 		  HAL_GPIO_WritePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin, 0);
