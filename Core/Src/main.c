@@ -47,7 +47,9 @@ I2C_HandleTypeDef hi2c1;
 TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
-
+uint32_t on_time;
+uint32_t off_time;
+uint32_t adc_val;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,8 +64,6 @@ static void MX_I2C1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint32_t on_time;
-uint32_t off_time;
 /* USER CODE END 0 */
 
 /**
@@ -97,19 +97,19 @@ int main(void)
   MX_TIM4_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  uint32_t adc_val = 0;
   HAL_ADC_Start(&hadc1);
+  adc_val = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
 		//ADC読み込み
-		HAL_ADC_PollForConversion(&hadc1, 100);
-		adc_val = HAL_ADC_GetValue(&hadc1);
+//		HAL_ADC_PollForConversion(&hadc1, 100);
+//		adc_val = HAL_ADC_GetValue(&hadc1);
 
-		on_time = adc_val/20;
-		off_time = (0xfff-adc_val)/20;
+		on_time = 2000;
+		off_time = 1000;
 
 		HAL_GPIO_WritePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin, 0);
 		HAL_Delay(on_time);//Light on

@@ -1,3 +1,5 @@
 r
 loadfile Debug/xy-axis-robo-BluePill.bin
+r0
+r1
 q
