@@ -18,3 +18,6 @@ OSはUbuntu。[J-Link EDU](https://www.embitek.co.jp/product/jlink-edu.html)を�
 | SWDIO | 7 | | DIO(SWD-Connector) |
 | SWCLK | 9 | | DCLK(SWD-Connector) |
 | RESET | 15 | | R |
+
+## ステッピングモータドライバA4988
+[ステッピングモータードライバA4988 - スイッチサイエンス](https://www.switch-science.com/catalog/582/)

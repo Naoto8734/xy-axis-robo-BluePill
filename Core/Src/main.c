@@ -99,23 +99,29 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_ADC_Start(&hadc1);
   adc_val = 0;
+
+  //A4988 EN PIN => 0 (Motor power OFF)
+  HAL_GPIO_WritePin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin, 1);
+  HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, 1);
+  HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin, 1);
+  HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin, 1);
+
+  //Enable  X2 motor
+  HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, 0);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while (1) {
+  while (1)
+  {
 		//ADC読み込み
 //		HAL_ADC_PollForConversion(&hadc1, 100);
 //		adc_val = HAL_ADC_GetValue(&hadc1);
 
-		on_time = 2000;
-		off_time = 1000;
-
-		HAL_GPIO_WritePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin, 0);
-		HAL_Delay(on_time);//Light on
-
-		HAL_GPIO_WritePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin, 1);
-		HAL_Delay(off_time);//Light off
+		HAL_GPIO_TogglePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin);
+		HAL_GPIO_TogglePin(A4988_STEP_X_GPIO_Port, A4988_STEP_X_Pin);
+		HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -299,10 +305,6 @@ static void MX_TIM4_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
-  {
-    Error_Handler();
-  }
   /* USER CODE BEGIN TIM4_Init 2 */
 
   /* USER CODE END TIM4_Init 2 */
@@ -330,7 +332,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, A4988_DIR_Y_Pin|A4988_EN_Y1_Pin|A4988_EN_Y2_Pin|A4988_DIR_X_Pin
-                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin, GPIO_PIN_RESET);
+                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin|A4988_STEP_X_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : LED_BUILTIN_Pin */
   GPIO_InitStruct.Pin = LED_BUILTIN_Pin;
@@ -340,9 +342,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(LED_BUILTIN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : A4988_DIR_Y_Pin A4988_EN_Y1_Pin A4988_EN_Y2_Pin A4988_DIR_X_Pin
-                           A4988_EN_X1_Pin A4988_EN_X2_Pin */
+                           A4988_EN_X1_Pin A4988_EN_X2_Pin A4988_STEP_X_Pin */
   GPIO_InitStruct.Pin = A4988_DIR_Y_Pin|A4988_EN_Y1_Pin|A4988_EN_Y2_Pin|A4988_DIR_X_Pin
-                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin;
+                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin|A4988_STEP_X_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
