@@ -100,19 +100,19 @@ int main(void)
   HAL_ADC_Start(&hadc1);
   adc_val = 0;
 
-  //A4988 EN PIN => 0 (Motor power OFF)
+  //A4988 EN PIN => 1:HIGH (Motor power OFF)
   HAL_GPIO_WritePin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin, 1);
   HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, 1);
   HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin, 1);
   HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin, 1);
-
-  //Enable  X2 motor
-  HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, 0);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  //Enable  X2 motor
+  HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, 0);
+  //Enable x motor pwm
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
   while (1)
   {
 		//ADC読み込み
@@ -120,8 +120,7 @@ int main(void)
 //		adc_val = HAL_ADC_GetValue(&hadc1);
 
 		HAL_GPIO_TogglePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin);
-		HAL_GPIO_TogglePin(A4988_STEP_X_GPIO_Port, A4988_STEP_X_Pin);
-		HAL_Delay(10);
+		HAL_Delay(1500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -273,9 +272,9 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 360-1;
+  htim4.Init.Prescaler = 3600-1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 20-1;
+  htim4.Init.Period = 400-1;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -298,10 +297,14 @@ static void MX_TIM4_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 50;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     Error_Handler();
   }
@@ -332,7 +335,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, A4988_DIR_Y_Pin|A4988_EN_Y1_Pin|A4988_EN_Y2_Pin|A4988_DIR_X_Pin
-                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin|A4988_STEP_X_Pin, GPIO_PIN_RESET);
+                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : LED_BUILTIN_Pin */
   GPIO_InitStruct.Pin = LED_BUILTIN_Pin;
@@ -342,9 +345,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(LED_BUILTIN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : A4988_DIR_Y_Pin A4988_EN_Y1_Pin A4988_EN_Y2_Pin A4988_DIR_X_Pin
-                           A4988_EN_X1_Pin A4988_EN_X2_Pin A4988_STEP_X_Pin */
+                           A4988_EN_X1_Pin A4988_EN_X2_Pin */
   GPIO_InitStruct.Pin = A4988_DIR_Y_Pin|A4988_EN_Y1_Pin|A4988_EN_Y2_Pin|A4988_DIR_X_Pin
-                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin|A4988_STEP_X_Pin;
+                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
