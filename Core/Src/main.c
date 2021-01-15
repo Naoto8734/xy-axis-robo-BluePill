@@ -32,6 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define MOTOR_ROTATE_PULSE 200
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -44,12 +45,20 @@ ADC_HandleTypeDef hadc1;
 
 I2C_HandleTypeDef hi2c1;
 
+TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
 uint32_t on_time;
 uint32_t off_time;
 uint32_t adc_val;
+
+//timer4用(A4988のSTEPパルス用変数)
+volatile uint8_t pulse_state_x = 1;
+volatile uint8_t pulse_state_y = 1;
+volatile int pulse_cnt_x = 0;
+volatile int pulse_cnt_y = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,6 +67,7 @@ static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -96,6 +106,7 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM4_Init();
   MX_I2C1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   HAL_ADC_Start(&hadc1);
   adc_val = 0;
@@ -105,6 +116,9 @@ int main(void)
   HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, 1);
   HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin, 1);
   HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin, 1);
+
+  //TIM4の有効化(A4988用の100Hzタイマー割り込み)
+  HAL_TIM_Base_Start_IT(&htim4);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -112,7 +126,7 @@ int main(void)
   //Enable  X2 motor
   HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, 0);
   //Enable x motor pwm
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+  //ToDo:PWMモードを使わずに、タイマー割り込みぶん回してPWMを管理する。50Hzなので、20msくらいのパルスをメインで数えればよくね？
   while (1)
   {
 		//ADC読み込み
@@ -120,7 +134,7 @@ int main(void)
 //		adc_val = HAL_ADC_GetValue(&hadc1);
 
 		HAL_GPIO_TogglePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin);
-		HAL_Delay(1500);
+		HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -196,7 +210,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T3_TRGO;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 1;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -253,6 +267,51 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 200-1;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 360-1;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
   * @brief TIM4 Initialization Function
   * @param None
   * @retval None
@@ -266,7 +325,6 @@ static void MX_TIM4_Init(void)
 
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
 
   /* USER CODE BEGIN TIM4_Init 1 */
 
@@ -274,9 +332,9 @@ static void MX_TIM4_Init(void)
   htim4.Instance = TIM4;
   htim4.Init.Prescaler = 3600-1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 400-1;
+  htim4.Init.Period = 200-1;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
   {
     Error_Handler();
@@ -286,32 +344,15 @@ static void MX_TIM4_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
-  {
-    Error_Handler();
-  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 50;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
-  {
-    Error_Handler();
-  }
   /* USER CODE BEGIN TIM4_Init 2 */
 
   /* USER CODE END TIM4_Init 2 */
-  HAL_TIM_MspPostInit(&htim4);
 
 }
 
@@ -335,7 +376,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, A4988_DIR_Y_Pin|A4988_EN_Y1_Pin|A4988_EN_Y2_Pin|A4988_DIR_X_Pin
-                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin, GPIO_PIN_RESET);
+                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin|A4988_STEP_Y_Pin|A4988_STEP_X_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : LED_BUILTIN_Pin */
   GPIO_InitStruct.Pin = LED_BUILTIN_Pin;
@@ -345,9 +386,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(LED_BUILTIN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : A4988_DIR_Y_Pin A4988_EN_Y1_Pin A4988_EN_Y2_Pin A4988_DIR_X_Pin
-                           A4988_EN_X1_Pin A4988_EN_X2_Pin */
+                           A4988_EN_X1_Pin A4988_EN_X2_Pin A4988_STEP_Y_Pin A4988_STEP_X_Pin */
   GPIO_InitStruct.Pin = A4988_DIR_Y_Pin|A4988_EN_Y1_Pin|A4988_EN_Y2_Pin|A4988_DIR_X_Pin
-                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin;
+                          |A4988_EN_X1_Pin|A4988_EN_X2_Pin|A4988_STEP_Y_Pin|A4988_STEP_X_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -369,6 +410,15 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	//タイマー割り込み用のコールバック関数。
+	if( htim== &htim4){
+		//timer(100Hz)
+		HAL_GPIO_TogglePin(A4988_STEP_X_GPIO_Port, A4988_STEP_X_Pin);
+		HAL_GPIO_TogglePin(A4988_STEP_Y_GPIO_Port, A4988_STEP_Y_Pin);
+	}
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	//ToDo スイッチ回路のLEDが、常時微点灯する。(Y1,Y2)
 	//対策案1:おそらく点灯用抵抗が大きすぎる？ので抵抗を少し小さくする。
