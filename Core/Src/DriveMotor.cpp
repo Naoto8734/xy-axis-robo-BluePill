@@ -7,15 +7,112 @@
 
 #include "DriveMotor.h"
 
-DriveMotor::DriveMotor() {
-	// TODO Auto-generated constructor st
+void DriveMotor::Init(void) {
+	//A4988 EN PIN initialize => GPIO_PIN_SET:HIGH (Motor power OFF)
+	HAL_GPIO_WritePin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin, GPIO_PIN_SET);
+	//A4988 DIR PIN initialize => 0
+	HAL_GPIO_WritePin(A4988_DIR_X_GPIO_Port, A4988_DIR_X_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(A4988_DIR_Y_GPIO_Port, A4988_DIR_Y_Pin, GPIO_PIN_RESET);
+	//A4988 STEP PIN initialize => 1
+	HAL_GPIO_WritePin(A4988_STEP_X_GPIO_Port, A4988_STEP_X_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(A4988_STEP_Y_GPIO_Port, A4988_STEP_Y_Pin, GPIO_PIN_SET);
+
+	this->state_enable = 0;
+	this->count_x1_ref = 0;
+	this->count_x1 = 0;
+	this->count_x2_ref = 0;
+	this->count_x2 = 0;
 }
 
-DriveMotor::~DriveMotor() {
-	// TODO Auto-generated destructor stub
+void DriveMotor::dm(uint32_t pulse, Drive_Motor_Direction_TypeDef dir,
+		Drive_Motor_Select_TypeDef select, uint32_t speed) {
+	switch (select) {
+	case MOTOR_X1:
+		if (dir == MOTOR_DIR_FORWARD)
+			HAL_GPIO_WritePin(A4988_DIR_X_GPIO_Port, A4988_DIR_X_Pin,
+					GPIO_PIN_RESET);
+		if (dir == MOTOR_DIR_REVERSE)
+			HAL_GPIO_WritePin(A4988_DIR_X_GPIO_Port, A4988_DIR_X_Pin,
+					GPIO_PIN_SET);
+		this->state_enable += MOTOR_X1;
+		this->count_x1_ref = pulse;
+		this->count_x1 = 0;
+		HAL_GPIO_WritePin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin,
+				GPIO_PIN_RESET);
+		break;
+	case MOTOR_X2:
+		if (dir == MOTOR_DIR_FORWARD)
+			HAL_GPIO_WritePin(A4988_DIR_X_GPIO_Port, A4988_DIR_X_Pin,
+					GPIO_PIN_RESET);
+		if (dir == MOTOR_DIR_REVERSE)
+			HAL_GPIO_WritePin(A4988_DIR_X_GPIO_Port, A4988_DIR_X_Pin,
+					GPIO_PIN_SET);
+		this->state_enable += MOTOR_X2;
+		this->count_x2_ref = pulse;
+		this->count_x2 = 0;
+		HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin,
+				GPIO_PIN_RESET);
+		break;
+	case MOTOR_Y1:
+		HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin,
+				GPIO_PIN_RESET);
+		if (dir == MOTOR_DIR_FORWARD)
+			HAL_GPIO_WritePin(A4988_DIR_Y_GPIO_Port, A4988_DIR_Y_Pin,
+					GPIO_PIN_RESET);
+		if (dir == MOTOR_DIR_REVERSE)
+			HAL_GPIO_WritePin(A4988_DIR_Y_GPIO_Port, A4988_DIR_Y_Pin,
+					GPIO_PIN_SET);
+		this->state_enable += MOTOR_Y1;
+		break;
+	case MOTOR_Y2:
+		HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin,
+				GPIO_PIN_RESET);
+		if (dir == MOTOR_DIR_FORWARD)
+			HAL_GPIO_WritePin(A4988_DIR_Y_GPIO_Port, A4988_DIR_Y_Pin,
+					GPIO_PIN_RESET);
+		if (dir == MOTOR_DIR_REVERSE)
+			HAL_GPIO_WritePin(A4988_DIR_Y_GPIO_Port, A4988_DIR_Y_Pin,
+					GPIO_PIN_SET);
+		this->state_enable += MOTOR_Y2;
+		break;
+	default:
+		//error
+		break;
+	}
 }
 
-void DriveMotor::toggleLed(void) {
-	HAL_GPIO_TogglePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin);
-	HAL_Delay(1000);
+void DriveMotor::dm_timer_CBF(void) {
+	HAL_GPIO_TogglePin(A4988_STEP_X_GPIO_Port, A4988_STEP_X_Pin);
+	HAL_GPIO_TogglePin(A4988_STEP_Y_GPIO_Port, A4988_STEP_Y_Pin);
+
+	if ((this->state_enable >> 0) & 0x01 == 0x01) {
+		this->count_x1++;
+		if (this->count_x1 > this->count_x1_ref * 2) {
+			//規定の回転数になったため、停止する。
+			HAL_GPIO_WritePin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin,
+					GPIO_PIN_SET);
+			this->state_enable -= MOTOR_X1;
+			this->count_x1 = 0;
+			this->count_x1_ref = 0;
+		}
+	}
+	if ((this->state_enable >> 1) & 0x01 == 0x01) {
+		this->count_x2++;
+		if (this->count_x2 > this->count_x2_ref * 2) {
+			//規定の回転数になったため、停止する。
+			HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin,
+					GPIO_PIN_SET);
+			this->state_enable -= MOTOR_X2;
+			this->count_x2 = 0;
+			this->count_x2_ref = 0;
+		}
+	}
+}
+
+void DriveMotor::moveX(uint32_t pulse, Drive_Motor_Direction_TypeDef dir) {
+	this->dm(pulse, dir, MOTOR_X1, 0);
+	this->dm(pulse, dir, MOTOR_X2, 0);
 }
