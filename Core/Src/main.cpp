@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "DriveMotor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,9 +50,7 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
-uint32_t on_time;
-uint32_t off_time;
-uint32_t adc_val;
+DriveMotor obj;
 
 //timer4用(A4988のSTEPパルス用変数)
 volatile int pulse_cnt_x1 = 0;
@@ -110,19 +108,18 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 	HAL_ADC_Start(&hadc1);
-	adc_val = 0;
 
-	//A4988 EN PIN initialize => 1:HIGH (Motor power OFF)
-	HAL_GPIO_WritePin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin, 1);
-	HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, 1);
-	HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin, 1);
-	HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin, 1);
-	//A4988 DIR PIN initialize => 0
-	HAL_GPIO_WritePin(A4988_DIR_X_GPIO_Port, A4988_DIR_X_Pin, 0);
-	HAL_GPIO_WritePin(A4988_DIR_Y_GPIO_Port, A4988_DIR_Y_Pin, 0);
-	//A4988 STEP PIN initialize => 1
-	HAL_GPIO_WritePin(A4988_STEP_X_GPIO_Port, A4988_STEP_X_Pin, 1);
-	HAL_GPIO_WritePin(A4988_STEP_Y_GPIO_Port, A4988_STEP_Y_Pin, 1);
+//	//A4988 EN PIN initialize => 1:HIGH (Motor power OFF)
+//	HAL_GPIO_WritePin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin, 1);
+//	HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, 1);
+//	HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin, 1);
+//	HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin, 1);
+//	//A4988 DIR PIN initialize => 0
+//	HAL_GPIO_WritePin(A4988_DIR_X_GPIO_Port, A4988_DIR_X_Pin, 0);
+//	HAL_GPIO_WritePin(A4988_DIR_Y_GPIO_Port, A4988_DIR_Y_Pin, 0);
+//	//A4988 STEP PIN initialize => 1
+//	HAL_GPIO_WritePin(A4988_STEP_X_GPIO_Port, A4988_STEP_X_Pin, 1);
+//	HAL_GPIO_WritePin(A4988_STEP_Y_GPIO_Port, A4988_STEP_Y_Pin, 1);
 
 	//TIM4の有効化(A4988用の100Hzタイマー割り込み)
 	HAL_TIM_Base_Start_IT(&htim4);
@@ -136,19 +133,8 @@ int main(void)
 //	HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin, 0);
 //	HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin, 0);
 
-	//Enable x motor pwm
-	//ToDo:PWMモードを使わずに、タイマー割り込みぶん回してPWMを管理する。50Hzなので、20msくらいのパルスをメインで数えればよくね？
-	uint8_t rx_buff[1] = {0};
 	while (1) {
-		//ADC読み込み
-//		HAL_ADC_PollForConversion(&hadc1, 100);
-//		adc_val = HAL_ADC_GetValue(&hadc1);
-		while(HAL_I2C_Slave_Receive(&hi2c1, rx_buff, 1, 1000) != HAL_OK){
-			//受信していない
-		}
-		//受信した
-		HAL_GPIO_TogglePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin);
-
+		obj.toggleLed();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -425,40 +411,40 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	//タイマー割り込み用のコールバック関数。
-	if (htim == &htim4) {
-		//timer(100Hz)
-		HAL_GPIO_TogglePin(A4988_STEP_X_GPIO_Port, A4988_STEP_X_Pin);
-		HAL_GPIO_TogglePin(A4988_STEP_Y_GPIO_Port, A4988_STEP_Y_Pin);
-		if (HAL_GPIO_ReadPin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin) == 0) {
-			pulse_cnt_x1++;
-			if (pulse_cnt_x1 >= MOTOR_ROTATE_PULSE * 2) {
-				//1回転した時offにする。
-				HAL_GPIO_WritePin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin, 1);
-			}
-		}
-		if (HAL_GPIO_ReadPin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin) == 0) {
-			pulse_cnt_x2++;
-			if (pulse_cnt_x2 >= MOTOR_ROTATE_PULSE * 2) {
-				//1回転した時offにする。
-				HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, 1);
-			}
-		}
-		if (HAL_GPIO_ReadPin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin) == 0) {
-			pulse_cnt_y1++;
-			if (pulse_cnt_y1 >= MOTOR_ROTATE_PULSE * 2) {
-				//1回転した時offにする。
-				HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin, 1);
-			}
-		}
-		if (HAL_GPIO_ReadPin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin) == 0) {
-			pulse_cnt_y2++;
-			if (pulse_cnt_y2 >= MOTOR_ROTATE_PULSE * 2) {
-				//1回転した時offにする。
-				HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin, 1);
-			}
-		}
-	}
+//	//タイマー割り込み用のコールバック関数。
+//	if (htim == &htim4) {
+//		//timer(100Hz)
+//		HAL_GPIO_TogglePin(A4988_STEP_X_GPIO_Port, A4988_STEP_X_Pin);
+//		HAL_GPIO_TogglePin(A4988_STEP_Y_GPIO_Port, A4988_STEP_Y_Pin);
+//		if (HAL_GPIO_ReadPin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin) == 0) {
+//			pulse_cnt_x1++;
+//			if (pulse_cnt_x1 >= MOTOR_ROTATE_PULSE * 2) {
+//				//1回転した時offにする。
+//				HAL_GPIO_WritePin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin, 1);
+//			}
+//		}
+//		if (HAL_GPIO_ReadPin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin) == 0) {
+//			pulse_cnt_x2++;
+//			if (pulse_cnt_x2 >= MOTOR_ROTATE_PULSE * 2) {
+//				//1回転した時offにする。
+//				HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin, 1);
+//			}
+//		}
+//		if (HAL_GPIO_ReadPin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin) == 0) {
+//			pulse_cnt_y1++;
+//			if (pulse_cnt_y1 >= MOTOR_ROTATE_PULSE * 2) {
+//				//1回転した時offにする。
+//				HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin, 1);
+//			}
+//		}
+//		if (HAL_GPIO_ReadPin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin) == 0) {
+//			pulse_cnt_y2++;
+//			if (pulse_cnt_y2 >= MOTOR_ROTATE_PULSE * 2) {
+//				//1回転した時offにする。
+//				HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin, 1);
+//			}
+//		}
+//	}
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {

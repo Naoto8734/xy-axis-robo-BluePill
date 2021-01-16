@@ -23,3 +23,6 @@ OSはUbuntu。[J-Link EDU](https://www.embitek.co.jp/product/jlink-edu.html)を�
 [ステッピングモータードライバA4988 - スイッチサイエンス](https://www.switch-science.com/catalog/582/)
 200パルスをA4988に送ると1回転。x,yモータ1回転で、4cm移動。
 よって、1[pulse]=1.8[deg]=0.2[mm]
+
+## I2C Slave
+Slaveのアドレスを、`0x25`とする。
