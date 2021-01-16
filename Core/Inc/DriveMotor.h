@@ -26,12 +26,17 @@ class DriveMotor {
 	volatile uint32_t count_x1;
 	volatile uint32_t count_x2_ref;
 	volatile uint32_t count_x2;
-	uint8_t state_enable;
+	volatile uint32_t count_y1_ref;
+	volatile uint32_t count_y1;
+	volatile uint32_t count_y2_ref;
+	volatile uint32_t count_y2;
 public:
 	void Init(void);
+	volatile uint8_t state_enable;
 	void dm(uint32_t, Drive_Motor_Direction_TypeDef, Drive_Motor_Select_TypeDef, uint32_t);
 	void dm_timer_CBF(void);
 	void moveX(uint32_t, Drive_Motor_Direction_TypeDef);
+	void moveY(uint32_t, Drive_Motor_Direction_TypeDef);
 };
 
 

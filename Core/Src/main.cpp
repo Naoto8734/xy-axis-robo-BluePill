@@ -107,11 +107,19 @@ int main(void) {
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-	mydm.moveX(MOTOR_ROTATE_PULSE, MOTOR_DIR_REVERSE);
+
 	while (1) {
 		//TODO: DriveMotor.drive(pulse);みたいな感じで簡単化する。
 		HAL_GPIO_TogglePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin);
-		HAL_Delay(1000);
+		mydm.moveX(MOTOR_ROTATE_PULSE, MOTOR_DIR_FORWARD);
+		mydm.moveY(MOTOR_ROTATE_PULSE, MOTOR_DIR_FORWARD);
+		while(mydm.state_enable!=0);//モータの駆動が終わるまで待機。
+		HAL_Delay(100);
+		HAL_GPIO_TogglePin(LED_BUILTIN_GPIO_Port, LED_BUILTIN_Pin);
+		mydm.moveX(MOTOR_ROTATE_PULSE, MOTOR_DIR_REVERSE);
+		mydm.moveY(MOTOR_ROTATE_PULSE, MOTOR_DIR_REVERSE);
+		while(mydm.state_enable!=0);//モータの駆動が終わるまで待機。
+		HAL_Delay(100);
 		/* USER CODE END WHILE */
 		/* USER CODE BEGIN 3 */
 	}
