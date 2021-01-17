@@ -2,7 +2,11 @@
 STM32F103(BluePill)用の、、STM32CubeIDEのワークスペース。
 回路図は以下の通り。
 ![circuit-board](xy-axis-robo-controll-board.png)
-[ロボのグリッパー部のリポジトリ](https://github.com/Naoto8734/gripper-robo-BluePill)
+
+### グリッパーロボ用のリポジトリ一覧
+
+- [ロボのグリッパー部のリポジトリ](https://github.com/Naoto8734/gripper-robo-BluePill)
+- [ロボのXY直動部のリポジトリ(これ)](https://github.com/Naoto8734/xy-axis-robo-BluePill)
 
 ## 書き込み方法
 OSはUbuntu。[J-Link EDU](https://www.embitek.co.jp/product/jlink-edu.html)を使用し、STM32CubeIDEで生成したbinファイルを書き込み。
@@ -20,9 +24,13 @@ OSはUbuntu。[J-Link EDU](https://www.embitek.co.jp/product/jlink-edu.html)を�
 | RESET | 15 | | R |
 
 ## ステッピングモータドライバA4988
-[ステッピングモータードライバA4988 - スイッチサイエンス](https://www.switch-science.com/catalog/582/)
-200パルスをA4988に送ると1回転。x,yモータ1回転で、4cm移動。
-よって、1[pulse]=1.8[deg]=0.2[mm]
+- [ステッピングモータードライバA4988 - スイッチサイエンス](https://www.switch-science.com/catalog/582/)
+ - 回路で、MS1,MS2,MS3はHIGHに固定しているので、1/16ステップ駆動
+- 駆動するモータ：[Nema 17 Bipolar 59Ncm (84oz.in) 2A 42x48mm 4 Wires w/ 1m Cable & Connector](https://www.omc-stepperonline.com/nema-17-bipolar-59ncm-84oz-in-2a-42x48mm-4-wires-w-1m-cable-and-connector.html)
+ - ステップアングルは、1.8[deg] = 360/200[deg]。
+- よって、200*16=3200パルスをA4988に送るとステッピングモータは1回転。
+- x,yモータ1回転で、タイミングベルトにより4cm移動。
+ - よって、1[pulse]=1.8[deg]=0.2[mm]
 
 ## I2C Slave
 Slaveのアドレスを、`0x25`とする。

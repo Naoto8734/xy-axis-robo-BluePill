@@ -11,7 +11,7 @@
 #include "main.h"
 #include <cstdint>
 
-#define MOTOR_ROTATE_PULSE 200
+#define MOTOR_ROTATE_PULSE 200*16
 
 typedef enum {
 	MOTOR_X1 = 0x01U<<0, MOTOR_X2 = 0x01U<<1, MOTOR_Y1 = 0x01U<<2, MOTOR_Y2 = 0x01U<<3

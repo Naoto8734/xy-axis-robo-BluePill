@@ -102,7 +102,7 @@ int main(void)
 //	HAL_ADC_Start(&hadc1);
 
 	mydm.Init();
-	//TIM4の有効化(A4988用の100Hzタイマー割り込み)
+	//TIM4の有効化(A4988用のタイマー割り込み)
 	HAL_TIM_Base_Start_IT(&htim4);
   /* USER CODE END 2 */
 
@@ -316,7 +316,7 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 3600-1;
+  htim4.Init.Prescaler = 360-1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 200-1;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
