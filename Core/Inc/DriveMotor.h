@@ -37,6 +37,7 @@ public:
 	void dm_timer_CBF(void);
 	void moveX(uint32_t, Drive_Motor_Direction_TypeDef);
 	void moveY(uint32_t, Drive_Motor_Direction_TypeDef);
+	void stopMotor(Drive_Motor_Select_TypeDef);
 };
 
 

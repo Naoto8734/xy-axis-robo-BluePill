@@ -99,48 +99,32 @@ void DriveMotor::dm_timer_CBF(void) {
 		HAL_GPIO_TogglePin(A4988_STEP_Y_GPIO_Port, A4988_STEP_Y_Pin);
 	}
 
-	if ((this->state_enable >> 0) & 0x01 == 0x01) {
+	if (((this->state_enable >> 0) & 0x01) == 0x01) {
 		this->count_x1++;
 		if (this->count_x1 > this->count_x1_ref * 2) {
 			//規定の回転数になったため、停止する。
-			HAL_GPIO_WritePin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin,
-					GPIO_PIN_SET);
-			this->state_enable -= MOTOR_X1;
-			this->count_x1 = 0;
-			this->count_x1_ref = 0;
+			this->stopMotor(MOTOR_X1);
 		}
 	}
-	if ((this->state_enable >> 1) & 0x01 == 0x01) {
+	if (((this->state_enable >> 1) & 0x01) == 0x01) {
 		this->count_x2++;
 		if (this->count_x2 > this->count_x2_ref * 2) {
 			//規定の回転数になったため、停止する。
-			HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin,
-					GPIO_PIN_SET);
-			this->state_enable -= MOTOR_X2;
-			this->count_x2 = 0;
-			this->count_x2_ref = 0;
+			this->stopMotor(MOTOR_X2);
 		}
 	}
-	if ((this->state_enable >> 2) & 0x01 == 0x01) {
+	if (((this->state_enable >> 2) & 0x01) == 0x01) {
 		this->count_y1++;
 		if (this->count_y1 > this->count_y1_ref * 2) {
 			//規定の回転数になったため、停止する。
-			HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin,
-					GPIO_PIN_SET);
-			this->state_enable -= MOTOR_Y1;
-			this->count_y1 = 0;
-			this->count_y1_ref = 0;
+			this->stopMotor(MOTOR_Y1);
 		}
 	}
-	if ((this->state_enable >> 3) & 0x01 == 0x01) {
+	if (((this->state_enable >> 3) & 0x01) == 0x01) {
 		this->count_y2++;
 		if (this->count_y2 > this->count_y2_ref * 2) {
 			//規定の回転数になったため、停止する。
-			HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin,
-					GPIO_PIN_SET);
-			this->state_enable -= MOTOR_Y2;
-			this->count_y2 = 0;
-			this->count_y2_ref = 0;
+			this->stopMotor(MOTOR_Y2);
 		}
 	}
 }
@@ -153,4 +137,47 @@ void DriveMotor::moveX(uint32_t pulse, Drive_Motor_Direction_TypeDef dir) {
 void DriveMotor::moveY(uint32_t pulse, Drive_Motor_Direction_TypeDef dir) {
 	this->dm(pulse, dir, MOTOR_Y1, 0);
 	this->dm(pulse, dir, MOTOR_Y2, 0);
+}
+
+void DriveMotor::stopMotor(Drive_Motor_Select_TypeDef select) {
+	switch (select) {
+	case MOTOR_X1:
+		if (((this->state_enable >> 0) & 0x01) == 0x01) {
+			HAL_GPIO_WritePin(A4988_EN_X1_GPIO_Port, A4988_EN_X1_Pin,
+					GPIO_PIN_SET);
+			this->state_enable -= MOTOR_X1;
+			this->count_x1 = 0;
+			this->count_x1_ref = 0;
+		}
+		break;
+	case MOTOR_X2:
+		if (((this->state_enable >> 1) & 0x01) == 0x01) {
+			HAL_GPIO_WritePin(A4988_EN_X2_GPIO_Port, A4988_EN_X2_Pin,
+					GPIO_PIN_SET);
+			this->state_enable -= MOTOR_X2;
+			this->count_x2 = 0;
+			this->count_x2_ref = 0;
+		}
+		break;
+	case MOTOR_Y1:
+		if (((this->state_enable >> 2) & 0x01) == 0x01) {
+			HAL_GPIO_WritePin(A4988_EN_Y1_GPIO_Port, A4988_EN_Y1_Pin,
+					GPIO_PIN_SET);
+			this->state_enable -= MOTOR_Y1;
+			this->count_y1 = 0;
+			this->count_y1_ref = 0;
+		}
+		break;
+	case MOTOR_Y2:
+		if (((this->state_enable >> 3) & 0x01) == 0x01) {
+			HAL_GPIO_WritePin(A4988_EN_Y2_GPIO_Port, A4988_EN_Y2_Pin,
+					GPIO_PIN_SET);
+			this->state_enable -= MOTOR_Y2;
+			this->count_y2 = 0;
+			this->count_y2_ref = 0;
+		}
+		break;
+	default:
+		break;
+	}
 }

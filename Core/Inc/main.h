@@ -82,6 +82,9 @@ void Error_Handler(void);
 #define A4988_EN_Y1_GPIO_Port GPIOB
 #define A4988_EN_Y2_Pin GPIO_PIN_15
 #define A4988_EN_Y2_GPIO_Port GPIOB
+#define LIMIT_SW_Y2_Pin GPIO_PIN_8
+#define LIMIT_SW_Y2_GPIO_Port GPIOA
+#define LIMIT_SW_Y2_EXTI_IRQn EXTI9_5_IRQn
 #define LIMIT_SW_X1_Pin GPIO_PIN_9
 #define LIMIT_SW_X1_GPIO_Port GPIOA
 #define LIMIT_SW_X1_EXTI_IRQn EXTI9_5_IRQn
@@ -91,9 +94,6 @@ void Error_Handler(void);
 #define LIMIT_SW_Y1_Pin GPIO_PIN_11
 #define LIMIT_SW_Y1_GPIO_Port GPIOA
 #define LIMIT_SW_Y1_EXTI_IRQn EXTI15_10_IRQn
-#define LIMIT_SW_Y2_Pin GPIO_PIN_12
-#define LIMIT_SW_Y2_GPIO_Port GPIOA
-#define LIMIT_SW_Y2_EXTI_IRQn EXTI15_10_IRQn
 #define A4988_DIR_X_Pin GPIO_PIN_3
 #define A4988_DIR_X_GPIO_Port GPIOB
 #define A4988_EN_X1_Pin GPIO_PIN_4
