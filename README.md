@@ -1,12 +1,18 @@
 # xy-axis-robo-BluePill
 STM32F103(BluePill)用の、、STM32CubeIDEのワークスペース。
-回路図は以下の通り。
+回路図は以下の通り。(**未修正なので、現物と異なる**)
+
 ![circuit-board](xy-axis-robo-controll-board.png)
+
+マイコンのピン配置は次の通り。
+
+![pinmap](xy-axis-robo-pinmap.png)
 
 ### グリッパーロボ用のリポジトリ一覧
 
 - [ロボのグリッパー部のリポジトリ](https://github.com/Naoto8734/gripper-robo-BluePill)
 - [ロボのXY直動部のリポジトリ(これ)](https://github.com/Naoto8734/xy-axis-robo-BluePill)
+- [ロボの指先部のリポジトリ](https://github.com/Naoto8734/fingertip-robo-BluePill)
 
 ## 書き込み方法
 OSはUbuntu。[J-Link EDU](https://www.embitek.co.jp/product/jlink-edu.html)を使用し、STM32CubeIDEで生成したbinファイルを書き込み。
@@ -16,7 +22,7 @@ OSはUbuntu。[J-Link EDU](https://www.embitek.co.jp/product/jlink-edu.html)を�
 ### BluePillとJ-Link EDUとのピン接続
 
 | SWD(JLink) | Pin# | | BluePill |
- ---- | ---- | ---- | ---- | ---- 
+| ---- | ---- | ---- | ---- |
 | VTref | 1 | |3V3(SWD-Connector) |
 | GND | 4 | | GND(SWD-Connector) |
 | SWDIO | 7 | | DIO(SWD-Connector) |
@@ -30,10 +36,7 @@ OSはUbuntu。[J-Link EDU](https://www.embitek.co.jp/product/jlink-edu.html)を�
  - ステップアングルは、1.8[deg] = 360/200[deg]。
 - よって、200*16=3200パルスをA4988に送るとステッピングモータは1回転。
 - x,yモータ1回転で、タイミングベルトにより4cm移動。
- - よって、1[pulse]=1.8[deg]=0.2[mm]
-
-## I2C Slave
-Slaveのアドレスを、`0x25`とする。
+ - よって、1[pulse]=1.8/16[deg]=0.0125[mm]
 
 ## C++に対応させる方法
 参考：[How to Use C++ with STM32CubeIDE - Shawn Hymel](https://shawnhymel.com/1941/how-to-use-c-with-stm32cubeide/)
